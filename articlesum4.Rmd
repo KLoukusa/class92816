@@ -1,0 +1,1003 @@
+---
+title: "articlesum4"
+author: "Kaari Loukusa"
+date: "September 30, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Article 1
+
+###Intro
+There are four different processes to turn data into understanding, knowledge, and insight. They are data manipulation, data visualization, statistical analysis/modeling, and deployment of results. Here we will be focusing on data manipulation.  
+
+
+Well structured data serves two purposes.  
+1.	Makes data sutiable for softwear processing whether that be mathematical functions, visualization, etc.
+2.	Reveals information and insights.  
+
+
+We can use tidyr and dplyr packages in R Studio. The packages allow us to have more efficient code, easier to remember syntax, and easier to read syntax. 
+
+
+###The packages we are using
+library(dplyr)   
+library(tidyr)   
+
+##tidyr
+-gather()   
+-spread()   
+-seperate()   
+-unite()   
+
+##dplyr
+-select()  
+-filter()  
+-group_by()  
+-summarise()   
+-arrange()   
+-join()   
+-mutate()   
+
+###%>% Operator
+You can use the functions with or without this operator. If you do use it, it allows you to string multiple functions together. For example:   
+
+filter(data, variable == numeric_value)   
+or   
+data %>% filter(variable == numeric_value)   
+
+These function do the same thing. When you get longer chains, it becomes even more advantageous. If we wanted to filter data, summarize it, and then order the summarized results we could do the following:   
+-Nested Option   
+    arrange(  
+            summarize(  
+                filter(data, variable == numeric_value),  
+                Total = sum(variable)  
+            ),  
+        desc(Total)  
+    )  
+
+
+-Multiple Object Option  
+
+a <- filter(data, variable == numeric_value)  
+b <- summarise(a, Total = sum(variable))  
+c <- arrange(b, desc(Total))   
+
+-%>% Option
+
+data %>%   
+   filter(variable == "value") %>%   
+   summarise(Total = sum(variable)) %>%   
+   arrange(desc(Total))   
+
+##tidyr Operations
+-gather() takes multiple colums, and gathers them into key-value pairs: is makes "wide" data longer   
+-spread() takes two colums (key & value) and spreads in to multiple colums, it makes "long" data wider   
+-seperate() splits a single column into multiple columns   
+-unite() combines multiple columns into a single column
+
+####gather() function
+-objective: Reshaping wide format to long format   
+
+-Description: There are times when our data is considered unstacked and a common attribute of concern is spread out across columns. To reformat the data such that these common attributes are gathered together as a single variable, the gather() function will take multiple columns and collapse them into key-value pairs, duplicating all other columns as needed.    
+
+-Syntax:  
+Function: gather(data, key, value, ..., na.rm = FALSE, convert = FALSE)    
+Same as:   
+data %>% gather(key, value, ..., na.rm = FALSE, convert = FALSE)     
+
+Arguments:   
+data: data frame   
+key: column name representing new variable   
+value: column name representing variable values   
+...: names of columns to gather (or not gather)   
+na.rm: option to remove observations with missing values (represented by NAs)    
+convert: if TRUE will automatically convert values to logical, integer, numeric, complex or factor as appropriate.    
+
+-Example:   
+If there is a data set with the time variable represented in quarters, it is considered wide. You can use the gather function to restructure the time component as an individual variable.    
+
+
+long_DF <- DF %>% gather(Quarter, Revenue, Qtr.1:Qtr.4)    
+
+####seperate() function:
+-objective: splitting a single variable into two    
+-Description: Many times a single column variable will capture multiple variables, or even parts of a variable you just don't care about. Our objective may be to separate characters within the variable string. This can be accomplished using the separate() function which turns a single character column into multiple columns.    
+-Syntax:   
+Function: separate(data, col, into, sep = " ", remove = TRUE, convert = FALSE)   
+Same as:   
+data %>% separate(col, into, sep = " ", remove = TRUE, convert = FALSE) Arguments:
+data: data frame    
+col: column name representing current variable    
+into: names of variables representing new variables    
+sep: how to separate current variable (char, num, or symbol)   
+remove: if TRUE, remove input column from output data frame   
+convert: if TRUE will automatically convert values to logical, integer, numeric, complex or factor as appropriate   
+
+-example: You can seperate the quarter variable into quarter and number with the following:   
+
+separate_DF <- long_DF %>% separate(Quarter, c("Time_Interval", "Interval_ID"))   
+
+####unite() function:
+-Objective: Merging two variables into one.   
+-Description: There may be a time in which we would like to combine the values of two variables. The unite() function is a convenience function to paste together multiple variable values into one. In essence, it combines two variables of a single observation into one variable.   
+-Syntax:   
+Function: unite(data, col, ..., sep = " ", remove = TRUE)   
+Same as:   
+data %>% unite(col, ..., sep = " ", remove = TRUE)   
+Arguments:   
+data: data frame    
+col: column name of new "merged" column   
+...: names of columns to merge     
+sep: separator to use between merged values    
+remove: if TRUE, remove input column from output data frame   
+
+-example:   
+We can re-unite the time_interval and interval_ID we created with the original quarter variable.    
+unite_DF <- separate_DF %>% unite(Quarter, Time_Interval, Interval_ID, sep = ".")   
+
+####spread() function:
+-Objective: Reshaping long format to wide format    
+-Description: There are times when we are required to turn long formatted data into wide formatted data. The spread() function spreads a key-value pair across multiple columns.   
+-Syntax:   
+Function: spread(data, key, value, fill = NA, convert = FALSE)   
+Same as:   
+data %>% spread(key, value, fill = NA, convert = FALSE)   
+Arguments:   
+data: data frame   
+key: column values to convert to multiple columns   
+value: single column values to convert to multiple columns' values    
+fill: If there isn't a value for every combination of the other variables and the key column, this value will be substituted    
+convert: if TRUE will automatically convert values to logical, integer, numeric, complex or factor as appropriate    
+-example: wide_DF <- unite_DF %>% spread(Quarter, Revenue)   
+
+##dplyr Operations
+-select() selecting variables   
+-filter() provides basic filtering capabilities   
+-group_by() groups data by categorical levels   
+-summarise() summarise data by functions of choice   
+-arrange() ordering data   
+-join() joining separate dataframes   
+-mutate() create new variables   
+
+
+####select() function:
+-Objective: Reduce dataframe size to only desired variables for current task   
+-Description: When working with a sizable dataframe, often we desire to only assess specific variables. The select() function allows you to select and/or rename variables.    
+-Syntax:      
+Function: select(data, ...)   
+Same as: data %>% select(...)   
+Arguments:   
+data: data frame   
+...: call variables by name or by function    
+Special functions:   
+starts_with(x, ignore.case = TRUE): names starts with x    
+ends_with(x, ignore.case = TRUE): names ends in x    
+contains(x, ignore.case = TRUE): selects all variables whose name contains x    
+matches(x, ignore.case = TRUE): selects all variables whose name matches the regular expression x     
+-Example: We only want to assess the 5 most recent years worth of data, you can select only the variables of concern.     
+sub.exp <- expenditures %>% select(Division, State, X2007:X2011)     
+
+We can also apply some of the special functions within select(). For instance we can select all variables that start with 'X':   
+head(expenditures %>% select(starts_with("X")))   
+
+
+####filter() function:
+-Objective: Reduce rows/observations with matching conditions   
+-Description: Filtering data is a common task to identify/select observations in which a particular variable matches a specific value/condition. The filter() function provides this capability.    
+
+-Syntax:   
+Function: filter(data, ...)    
+Same as:    
+data %>% filter(...)    
+Arguments:    
+data: data frame    
+...: conditions to be met    
+
+-Example:   
+We can continue from our previous example and filter by division.    
+sub.exp %>% filter(Division == 3)     
+
+We can use multiple logic rules in the filter() function:
+< Less than    
+!= Not equal to    
+> Greater than    
+%in% Group membership    
+== Equal to     
+is.na is NA    
+<= Less than or equal to      
+!is.na is not NA    
+>= Greater than or equal to      
+&,|,! Boolean operators     
+
+For instance, we can filter for Division 3 and expenditures in 2011 that were greater than $10B. This results in Indiana, which is in Division 3, being excluded since its expenditures were < $10B.    
+
+sub.exp %>% filter(Division == 3, X2011 > 10000000)  # Raw census data are in units of $1,000     
+
+####group_by() function:
+-Objective: Group data by categorical variables    
+-Description: Often, observations are nested within groups or categories and our goals is to perform statistical analysis both at the observation level and also at the group level. The group_by() function allows us to create these categorical groupings.    
+
+-Syntax:    
+Function: group_by(data, ...)    
+Same as:   
+data %>% group_by(...)    
+Arguments:    
+data: data frame    
+...: variables to group_by    
+*Use ungroup(x) to remove groups    
+
+group.exp <- sub.exp %>% group_by(Division)    
+
+-Example:   
+It is a silent function that will only make noticable changes when perform summary statistics.    
+
+
+####summarise() function:    
+-Objective: Perform summary statistics on variables    
+-Description: Obviously the goal of all this data wrangling is to be able to perform statistical analysis on our data. The summarise() function allows us to perform the majority of the initial summary statistics when performing exploratory data analysis.    
+-Syntax:    
+Function: summarise(data, ...)    
+Same as:    
+data %>% summarise(...)     
+Arguments:    
+data: data frame    
+...: Name-value pairs of summary functions like min(), mean(), max() etc.    
+-Example:     
+To find the mean valuse in all states in 2011    
+sub.exp %>% summarise(Mean_2011 = mean(X2011))    
+
+To get more stats   
+sub.exp %>% summarise(Min = min(X2011, na.rm=TRUE),    
+                     Median = median(X2011, na.rm=TRUE),    
+                     Mean = mean(X2011, na.rm=TRUE),    
+                     Var = var(X2011, na.rm=TRUE),    
+                     SD = sd(X2011, na.rm=TRUE),    
+                     Max = max(X2011, na.rm=TRUE),    
+                     N = n())     
+                     
+You can also compare summary stats at multiple levels and you can use the group_by() function.  
+
+*First, let's group by Division and see how the different regions compared in by 2010 and 2011.
+
+sub.exp %>%
+        group_by(Division)%>% 
+        summarise(Mean_2010 = mean(X2010, na.rm=TRUE),
+                  Mean_2011 = mean(X2011, na.rm=TRUE))   
+                  
+                        
+*We can also compare states within a Division. Get 5 year average for each state within dividion 3      
+
+sub.exp %>% gather(Year, Expenditure, X2007:X2011) %>%       
+this turns our wide data to a long format
+
+sub.exp %>% filter(Division == 3) %>%      
+we only want to compare states within Division 3
+        
+sub.exp %>% group_by(State) %>%                          
+we want to summarize data at the state level     
+
+sub.exp %>% summarise(Mean = mean(Expenditure),SD = sd(Expenditure))    
+
+
+
+
+####arrange() function:   
+-Objective: Order variable values     
+-Description: Often, we desire to view observations in rank order for a particular variable(s). The arrange() function allows us to order data by variables in accending or descending order.     
+-Syntax:    
+Function: arrange(data, ...)     
+Same as: data %>% arrange(...)     
+Arguments:    
+data: data frame    
+...: Variable(s) to order    
+*use desc(x) to sort variable in descending order      
+
+-Example:    
+For instance, in the summarise example we compared the the mean expenditures for each division. We could apply the arrange() function at the end to order the divisions from lowest to highest expenditure for 2011. This makes it easier to see the significant differences between Divisions 8,4,1 & 6 as compared to Divisions 5,7,9,3 & 2.   
+
+sub.exp %>%
+        group_by(Division)%>% 
+        summarise(Mean_2010 = mean(X2010, na.rm=TRUE),
+                  Mean_2011 = mean(X2011, na.rm=TRUE)) %>%
+        arrange(Mean_2011)      
+        
+        
+We can also apply an descending argument to rank-order from highest to lowest. The following shows the same data but in descending order by applying desc() within the arrange() function.        
+
+sub.exp %>%
+        group_by(Division)%>% 
+        summarise(Mean_2010 = mean(X2010, na.rm=TRUE),
+                  Mean_2011 = mean(X2011, na.rm=TRUE)) %>%
+        arrange(desc(Mean_2011))    
+        
+####join() functions:
+-Objective: Join two datasets together    
+-Description: Often we have separate dataframes that can have common and differing variables for similar observations and we wish to join these dataframes together. The multiple xxx_join() functions provide multiple ways to join dataframes.    
+-Syntax:    
+Description: Join two datasets    
+Function:          
+                inner_join(x, y, by = NULL)
+                left_join(x, y, by = NULL)
+                semi_join(x, y, by = NULL)
+                anti_join(x, y, by = NULL)
+
+Arguments:
+x,y: data frames to join    
+by: a character vector of variables to join by. If NULL, the default, join will do a natural join, using all variables with common names across the two tables.      
+
+-Example:      
+Our public education expenditure data represents then-year dollars. To make any accurate assessments of longitudinal trends and comparison we need to adjust for inflation. I have the following dataframe which provides inflation adjustment factors for base-year 2012 dollars.     
+
+To join to my expenditure data I obviously need to get my expenditure data in the proper form that allows my to join these two dataframes. I can apply the following functions to accomplish this:      
+
+long.exp <- sub.exp %>%
+        gather(Year, Expenditure, X2007:X2011) %>%        
+turn to long format      
+
+        separate(Year, into=c("x", "Year"), sep="X") %>%    
+separate "X" from year value
+        select(-x)                            
+remove "x" column     
+
+long.exp$Year <- as.numeric(long.exp$ Year)     
+convert from character to numeric
+
+head(long.exp)    
+
+
+I can now apply the left_join() function to join the inflation data to the expenditure data. This aligns the data in both dataframes by the Year variable and then joins the remaining inflation data to the expenditure dataframe as new variables.      
+
+join.exp <- long.exp %>% left_join(inflation)      
+ 
+head(join.exp)      
+
+You can also use:
+
+-inner_join(): Include only rows in both x and y that have a matching value.     
+inner_join(x,y)      
+
+
+-left_join(): Include all of x, and matching rows of y.     
+left_join(x,y)     
+
+-semi_join(): Include rows of x that match y but only keep the columns from x.      
+semi_join(x,y)    
+
+-anti_join(): Opposite of semi_join.    
+anti_join(x,y)    
+
+
+####mutate() function:   
+-Objective: Creates new variables.     
+-Description: Often we want to create a new variable that is a function of the current variables in our dataframe or even just add a new variable. The mutate() function allows us to add new variables while preserving the existing variables.     
+-Syntax:     
+Function: mutate(data, ...)     
+Same as:     
+data %>% mutate(...)                     
+Arguments:      
+data: data frame     
+...: Expression(s)    
+
+-Examples:     
+If we go back to our previous join.exp dataframe, remember that we joined inflation rates to our non-inflation adjusted expenditures for public schools. If we wanted to adjust our annual expenditures for inflation we can use mutate() to create a new inflation adjusted cost variable which we'll name Adj_Exp:      
+
+inflation_adj <- join.exp %>% mutate(Adj_Exp = Expenditure/Inflation)     
+
+Lets say we wanted to create a variable that rank-orders state-level expenditures (inflation adjusted) for the year 2010 from the highest level of expenditures to the lowest.     
+
+rank_exp <- inflation_adj %>% 
+        filter(Year == 2010) %>%
+        arrange(desc(Adj_Exp)) %>%
+        mutate(Rank = 1:length(Adj_Exp))      
+        
+If you wanted to assess the percent change in cost for a particular state you can use the lag() function within the mutate() function:     
+
+inflation_adj %>%
+        filter(State == "Ohio") %>%
+        mutate(Perc_Chg = (Adj_Exp-lag(Adj_Exp))/lag(Adj_Exp))      
+        
+
+
+
+##Article 2
+
+
+###Tidy Data
+
+There are three interrelated rules which make a dataset tidy:   
+
+- Each variable must have its own column.   
+- Each observation must have its own row.   
+- Each value must have its own cell.   
+
+These three rules are interrelated because it's impossible to only satisfy two of the three. That interrelationship leads to an even simpler set of practical instructions:   
+
+- Put each dataset in a tibble.   
+- Put each variable in a column.   
+
+Why ensure that your data is tidy? There are two main advantages:    
+
+- There's a general advantage to picking one consistent way of storing data. If you have a consistent data structure, it's easier to learn the tools that work with it because they have an underlying uniformity.   
+
+- There's a specific advantage to placing variables in columns because it allows R's vectorised nature to shine. As you learned in mutate and summary functions, most built-in R functions work with vectors of values. That makes transforming tidy data feel particularly natural.    
+
+
+###Spreading and Gathering
+
+There are two main reasons you will see daasets thats are untidy:     
+
+- Most people aren't familiar with the principles of tidy data, and it's hard to derive them yourself unless you spend a lot of time working with data.     
+
+- Data is often organised to facilitate some use other than analysis. For example, data is often organised to make entry as easy as possible.     
+Steps for tidying data:     
+1. Figure out what the variables and observations are     
+2. Reselove one of two common problems. One variable might be spread across multiple colums. One observation might be scattered across multiple rows.     
+
+To fix these problems there are two functions in tidyr:   
+- gather()       
+- spread()     
+
+####Gathering 
+
+A common problem is a dataset where some of the column names are not names of variables, but values of a variable. Take table4a: the column names 1991 and 2000 represent values of the year variable, and each row represents two observations, not one. To tidy a dataset like this, we need to gather those column into a new pair of variables. To describe that operation we need three parameters:     
+
+The set of columns that represent values, not variables. In this example, those are the columns 1999 and 2000. The name of the variable whose values form the column names. I call that the key, and here it is year. The name of the variable whose values are spread over the cells. I call that value, and here it's the number of cases.        
+
+Together those parameters generate the call to gather():     
+table4a %>% 
+  gather(`1999`, `2000`, key = "year", value = "cases")      
+  
+  
+####Spreading    
+
+Spreading is the opposite of gathering. You use it when an observation is scattered across multiple rows. For example, take table2: an observation is a country in a year, but each observation is spread across two rows.   
+
+To tidy this up, we first analyse the representation in similar way to gather(). This time, however, we only need two parameters:     
+- The column that contains variable names, the key column. Here, it's type.     
+-The column that contains values forms multiple variables, the value column. Here it's count.     
+
+Once we've figured that out, we can use spread():     
+spread(table2, key = type, value = count)        
+
+
+####Separating       
+separate() pulls apart one column into multiple columns, by splitting wherever a separator character appears.     
+table3 %>% 
+  separate(rate, into = c("cases", "population"))      
+  
+By default, separate() will split values wherever it sees a non-alphanumeric character (i.e. a character that isn't a number or letter).       
+
+
+####Uniting    
+unite() is inverse of separate(): it combines multiple columns into a single column.        
+table5 %>% 
+  unite(new, century, year)        
+  
+  
+####Non-tidy data      
+There are two mains reasons to use other data structures:     
+- Alternative representations may have substantial performance or space advantages.     
+- Specialised fields have evolved their own conventions for storing data that may be quite different to the conventions of tidy data.     
+
+Either of these reasons means you'll need something other than a tibble (or data frame). If your data does fit naturally into a rectangular structure composed of observations and variables, I think tidy data should be your default choice. But there are good reasons to use other structures; tidy data is not the only way.       
+
+
+###Article 3     
+
+```{r}
+
+suppressMessages(library(dplyr))
+library(nycflights13)
+
+```
+
+
+```{r}
+flights %>% select(carrier, flight)
+```
+
+
+```{r}
+flights %>% select(-month, -day)
+```
+
+
+```{r}
+flights %>% filter(dep_time >= 600, dep_time <= 605)
+```
+
+
+```{r}
+# keep the first three rows within each group
+flights %>% group_by(month, day) %>% slice(1:3)
+```
+
+
+```{r}
+# sample three rows from each group
+flights %>% group_by(month, day) %>% sample_n(3)
+```
+
+
+
+```{r}
+# keep three rows from each group with the top dep_delay
+flights %>% group_by(month, day) %>% top_n(3, dep_delay)
+```
+
+
+```{r}
+# also sort by dep_delay within each group
+flights %>% group_by(month, day) %>% top_n(3, dep_delay) %>% arrange(desc(dep_delay))
+```
+
+
+```{r}
+# dplyr provides an alternative that is more "efficient"
+flights %>% select(origin, dest) %>% distinct()
+```
+
+
+
+```{r}
+# mutate() creates a new variable (and keeps all existing variables)
+flights %>% mutate(speed = distance/air_time*60)
+```
+
+
+```{r}
+# transmute() only keeps the new variables
+flights %>% transmute(speed = distance/air_time*60)
+```
+
+
+```{r}
+# dplyr no longer prints row names (ever) for local data frames
+mtcars %>% tbl_df()
+```
+
+
+
+```{r}
+# you can sort by the count
+flights %>% group_by(month) %>% summarise(cnt = n()) %>% arrange(desc(cnt))
+```
+
+
+
+```{r}
+# tally() and count() have a sort parameter for this purpose
+flights %>% group_by(month) %>% tally(sort=TRUE)
+flights %>% count(month, sort=TRUE)
+```
+
+
+
+```{r}
+# group by two variables, summarise, arrange (output is possibly confusing)
+flights %>% group_by(month, day) %>% summarise(cnt = n()) %>% arrange(desc(cnt)) %>% print(n = 40)
+```
+
+
+
+```{r}
+# ungroup() before arranging to arrange across all groups
+flights %>% group_by(month, day) %>% summarise(cnt = n()) %>% ungroup() %>% arrange(desc(cnt))
+```
+
+
+
+####creating data frames: data_frame
+data_frame() is a better way than data.frame() for creating data frames. Benefits of data_frame():     
+
+- You can use previously defined columns to compute new columns.     
+- It never coerces column types.    
+- It never munges column names.    
+- It never adds row names.     
+- It only recycles length 1 input.     
+- It returns a local data frame (a tbl_df).     
+
+
+```{r}
+# data_frame() example
+data_frame(a = 1:6, b = a*2, c = 'string', 'd+e' = 1) %>% glimpse()
+```
+
+####joining (merging) tables: left_join, right_join, inner_join, full_join, semi_join, anti_join      
+
+```{r}
+# create two simple data frames
+(a <- data_frame(color = c("green","yellow","red"), num = 1:3))
+```
+
+
+```{r}
+(b <- data_frame(color = c("green","yellow","pink"), size = c("S","M","L")))
+```
+
+
+
+```{r}
+# only include observations found in both "a" and "b" (automatically joins on variables that appear in both tables)
+inner_join(a, b)
+```
+
+
+
+```{r}
+# include observations found in either "a" or "b"
+full_join(a, b)
+```
+
+
+```{r}
+# include all observations found in "a"
+left_join(a, b)
+```
+
+
+```{r}
+# include all observations found in "b"
+right_join(a, b)
+```
+
+
+```{r}
+# right_join(a, b) is identical to left_join(b, a) except for column ordering
+left_join(b, a)
+```
+
+
+```{r}
+# filter "a" to only show observations that don't match "b"
+anti_join(a, b)
+```
+
+
+
+####Viewing more output: print, View     
+
+```{r}
+# specify that you want to see more rows
+flights %>% print(n = 15)
+```
+
+
+
+```{r}
+# specify that you want to see ALL rows (don't run this!)
+flights %>% print(n = Inf)
+```
+
+
+
+```{r}
+# specify that you want to see all columns
+flights %>% print(width = Inf)
+```
+
+
+###Article 4    
+
+dplyr is:    
+-tool for data exploration and transformation that is easy to read and write as well as fast     
+
+
+
+
+  
+```{r}  
+  
+cat(".Rprofile: Setting UK repositoryn")
+r = getOption("repos") # hard code the UK repo for CRAN
+r["CRAN"] = "http://cran.uk.r-project.org"
+options(repos = r)
+rm(r)  
+  
+```  
+
+
+
+to install:        
+
+```{r}
+
+install.packages("nycflights13") # one time install of the package 
+
+
+```
+  
+  
+  
+  
+
+  
+  
+  
+  
+loading our data package:     
+```{r}
+
+
+library(nycflights13)
+suppressMessages(library(dplyr))    
+
+
+
+```
+
+
+
+
+  
+  
+package nycflights13 has 5 data sets:     
+1. flights: flights data     
+2. airlines: airlaine names     
+3. airports: airport metadata     
+4. planes: plane metadata     
+5. weather: hourly weather data      
+
+
+
+```{r}
+data(flights)
+dim(flights)
+
+```
+
+
+####tbl_df     
+prints nicely and prevents an accidental display of the while dataset    
+
+```{r}
+
+tblflights <- tbl_df(flights)
+head(tblflights,3)
+
+```
+
+
+We can convert back to a normal data frame to see all of the columns
+```{r}
+
+head(data.frame(tblflights),3)
+
+```
+
+
+
+Basic single table (df) verbs
+1. filter: for subsetting variables    
+2. select: for subsetting rows     
+3. arrange: for re-ordering rows     
+4. mutate: for adding new columns     
+5. summarise or summarize: for reducing each group to a smaller number of summary statistics      
+
+
+
+#####filter
+```{r}
+
+filter(tblflights, carrier=="AA" & origin=="LGA")
+
+```
+
+
+
+
+also
+```{r}
+
+filter(tblflights, carrier=="AA" | carrier=="UA")
+
+```
+
+
+
+```{r}
+
+filter(tblflights, carrier %in% c ("AA" , "UA"))
+
+```
+
+
+
+
+####select: pick columns by names
+```{r}
+
+head(tblflights[, c("dep_time", "arr_time", "flight")])
+
+```
+
+
+
+```{r}
+
+print(select(tblflights, dep_time, arr_time, flight),n=6)
+
+```
+
+
+
+####Chaining over nesting?
+```{r}
+
+head(filter(select(tblflights, carrier, dep_delay), dep_delay > 60))
+
+```
+
+
+```{r}
+
+tblflights %>%
+  select(carrier, dep_delay) %>%
+  filter(dep_delay > 60) %>%
+  head()
+
+```
+
+Chaining increases readibility when there are multiple commands, operator is automatically imported from the magrittr package, and it can be used to replace nesting in R commands outside of dplyr
+
+
+####arrange: reorder rows
+
+normal way
+```{r}
+
+head(tblflights[order(tblflights$dep_delay), c("carrier", "dep_delay")])
+
+```
+
+
+dplyr way
+```{r}
+
+tblflights %>%
+  select(carrier, dep_delay) %>%
+  arrange(dep_delay) %>%
+  head()
+
+```
+
+####mutate: create new variables that are functions of existing variables
+
+normal way
+```{r}
+
+tblflights$delaysquare <- tblflights$dep_delay^2 + tblflights$arr_delay^2
+head(tblflights[, c("dep_delay", "arr_delay", "delaysquare")])
+
+```
+
+
+dplyr way
+```{r}
+
+tblflights %>%
+  select(dep_delay, arr_delay) %>%
+  mutate(delaysquare = dep_delay^2 + arr_delay^2) %>%
+  head()
+
+```
+
+
+####summarise/summarize: reduce multiple variables to values
+
+primarily useful with data that has been grouped by one or more variables.    
+group_by creates the groups that will be operated on      
+summarise uses the provided aggregation function to summarise each group     
+
+normal way
+```{r}
+
+aggregate(arr_delay ~ origin, tblflights, mean)
+
+```
+
+
+dplyr way
+```{r}
+
+tblflights %>%
+  group_by(origin) %>%
+  summarise(avg_delay = mean(arr_delay, na.rm=TRUE))
+
+```
+
+
+####for each carrier, calculate the mean arrival and departure delays at the different origin airports
+
+```{r}
+tblflights %>%
+  group_by(origin) %>%
+  summarise_each(funs(mean(.,na.rm=TRUE)), arr_delay, dep_delay) %>%
+  head ()
+
+```
+
+
+####summarise each
+```{r}
+
+tblflights %>% 
+  group_by(carrier) %>%
+  summarise_each(funs(min(., na.rm=TRUE), max(., na.rm=TRUE)), matches("_delay")) %>%
+  head()
+
+```
+
+
+####mutate_each
+```{r}
+tblflights %>%
+  select(matches("_delay")) %>%
+  head(3)
+
+```
+
+
+
+```{r}
+
+tblflights %>%
+  select(matches("_delay")) %>%
+  mutate_each(funs(half=./2)) %>%
+  head(3)
+
+```
+
+
+
+####n(): counts the number of rows in a group
+
+```{r}
+
+tblflights %>%
+  group_by(month,day) %>%
+  summarise(flight_count = n()) %>%
+  arrange(desc(flight_count)) %>%
+  head()
+
+```
+
+
+
+```{r}
+
+tblflights %>%
+  group_by(month,day) %>%
+  tally(sort = TRUE)
+
+```
+
+
+####n_distinct(vector): counts the number of unique items in that vector
+```{r}
+
+tblflights %>%
+  group_by(dest) %>%
+  summarise(flight_count = n(), plane_count = n_distinct(tailnum)) %>%
+  head()
+
+```
+
+
+####grouping without summarising
+```{r}
+
+tblflights %>%
+  group_by(dest) %>%
+  select(origin) %>%
+  table() %>%
+  head()
+
+```
+
+
+
