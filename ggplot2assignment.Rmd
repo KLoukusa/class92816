@@ -1,0 +1,178 @@
+---
+title: "ggplot2assignment"
+author: "Kaari Loukusa"
+date: "October 5, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(ggplot2)
+library(dplyr)
+
+```
+
+```{r}
+tallestbuildings=read.csv("tallestbuildings.csv")
+```
+
+##Question 1
+
+```{r}
+ library(dplyr)
+ count(tallestbuildings, 'City')
+```
+
+```{r}
+tallestbuildings$City = as.character(tallestbuildings$City)
+tallestbuildings$City = gsub("\xa0", " ", tallestbuildings$City)
+
+#restructuring the data
+```
+
+
+```{r}
+tallestbuildings$City=gsub("ÿ", "", tallestbuildings$City)   
+```
+
+
+```{r}
+#str(tallestbuildings)
+
+#testing that it works
+```
+
+
+```{r}
+CityData <- tallestbuildings %>% group_by(City) %>%
+summarise(NumBldgs = length(City), MeanMeters = mean(Height..m.)) 
+```
+
+
+```{r}
+library(tidyr)
+tallestbuildings <- separate(tallestbuildings, City, c("City", "CountryCode"), sep = -5)
+tallestbuildings$CountryCode <- substr(tallestbuildings$CountryCode, start=2, stop=3)
+```
+
+
+```{r}
+ggplot(data=CityData, aes(x=reorder(City, NumBldgs), y=NumBldgs)) + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  labs(list(title = "Number of Tall Buildings per City", x = "", y = "Number of Buildings")) + 
+  theme_classic() 
+```
+
+
+##Question 2
+
+```{r}
+ggplot(data=CityData, aes(x=reorder(City, MeanMeters), y=MeanMeters)) + 
+  geom_point(stat="identity") + 
+  coord_flip() + 
+  labs(list(title = "Mean Height of Buildings by City", x = "Number of Tall Buildings", y = "Mean Height (m)")) + 
+  theme_classic() 
+```
+
+##Question 3
+
+
+```{r}
+#install.packages("countrycode", repos="http://cran.rstudio.com/")    
+```
+
+
+```{r}
+library(countrycode)
+
+tallestbuildings$Country <- countrycode(tallestbuildings$CountryCode,"iso2c", "country.name", warn=TRUE)
+```
+
+
+```{r}
+CountryData <- tallestbuildings %>% group_by(Country) %>%
+summarise(NumBldgs = length(Country), MeanMeters = mean(Height..m.)) 
+```
+
+
+
+```{r}
+ggplot(data=CountryData, aes(x=reorder(Country, NumBldgs), y=NumBldgs)) + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  labs(list(title = "Number of Tall Buildings per Country", x = "", y = "Number of Tall Buildings")) + 
+  theme_classic()
+```
+
+
+
+##Question 4
+
+
+```{r}
+ggplot(data=CountryData, aes(x=reorder(Country, MeanMeters), y=MeanMeters)) + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  labs(list(title = "Mean Height of Tall Buildings per Country", x = "", y = "Mean Height (m)")) +
+  theme_classic() 
+```
+
+
+
+##Question 5
+
+
+```{r}
+ggplot(data=CountryData, aes(x=reorder(Country, MeanMeters), y=MeanMeters)) + 
+  geom_bar(stat="identity", aes(fill=as.factor(NumBldgs))) + 
+  coord_flip() + 
+  labs(list(title = "Countries Ranked by Mean Height of Buildings", x = "", y = "Mean Height (m)", fill = "Buildings")) + 
+  theme_classic()
+```
+
+
+##Question 6
+
+```{r}
+ library(dplyr)
+ count(tallestbuildings, 'Use')
+```
+
+
+```{r}
+library(tidyr)  
+
+tallestbuildingsseparated <- separate(tallestbuildings, Use, c("A", "B", "C", "D", "E"), sep = '/') 
+tallestgathered=gather(tallestbuildingsseparated, variable, UseType, c(A:E))
+
+```
+
+
+```{r}
+#summarise(tallestgathered,mean(Height..m.))
+```
+
+```{r}
+tallestgathered$UseType <- trimws(tallestgathered$UseType)
+
+```
+
+```{r}
+TallestData <- tallestgathered %>%group_by(UseType) %>%
+summarise(MeanMeters = mean(Height..m.))%>%filter(UseType!="")
+```
+
+```{r}
+ggplot(data=TallestData, aes(x=reorder(UseType, MeanMeters), y=MeanMeters)) + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  labs(list(title = "Mean Building Height by Use", x = "Mean Height (m)", y = "Building Use")) +
+  theme_classic()
+```
+
+
